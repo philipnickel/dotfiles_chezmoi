@@ -350,20 +350,37 @@ lvim.builtin.nvimtree.on_config_done = function()
   local function nvim_tree_on_attach(bufnr)
     local api = require("nvim-tree.api")
 
+    -- First, apply default nvim-tree keybindings
+    local function opts(desc)
+      return { desc = "nvim-tree: " .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+    end
+
+    -- Apply all default nvim-tree keybindings
+    require("nvim-tree.api").config.mappings.default_on_attach(bufnr)
+
     local function open_file_with_system()
       local node = api.tree.get_node_under_cursor()
       if node and node.absolute_path then
+        -- Handle PDFs with Zathura
         if node.absolute_path:match("%.pdf$") then
           vim.fn.jobstart({ "zathura", node.absolute_path }, { detach = true })
+        -- Handle images with Preview (via 'open' command)
+        elseif node.absolute_path:match("%.png$") or
+               node.absolute_path:match("%.jpe?g$") or
+               node.absolute_path:match("%.gif$") or
+               node.absolute_path:match("%.bmp$") or
+               node.absolute_path:match("%.tiff?$") or
+               node.absolute_path:match("%.webp$") then
+          vim.fn.jobstart({ "open", node.absolute_path }, { detach = true })
         else
           api.node.open.edit()
         end
       end
     end
 
-    -- Override default nvim-tree keybindings for Enter and 'o'
-    vim.keymap.set('n', '<CR>', open_file_with_system, { buffer = bufnr, noremap = true, silent = true })
-    vim.keymap.set('n', 'o', open_file_with_system, { buffer = bufnr, noremap = true, silent = true })
+    -- Override only the specific keybindings for Enter and 'o' for PDF/image handling
+    vim.keymap.set('n', '<CR>', open_file_with_system, opts('Open: PDFs with Zathura, Images with Preview'))
+    vim.keymap.set('n', 'o', open_file_with_system, opts('Open: PDFs with Zathura, Images with Preview'))
   end
 
   require("nvim-tree").setup({
@@ -441,14 +458,25 @@ vim.list_extend(lvim.builtin.treesitter.ensure_installed, {
   "lua",
 })
 
--- Configure Telescope to open PDFs with Zathura
-local function open_with_zathura(prompt_bufnr)
+-- Configure Telescope to open PDFs with Zathura and images with Preview
+local function open_with_system_app(prompt_bufnr)
   local selection = require("telescope.actions.state").get_selected_entry()
   require("telescope.actions").close(prompt_bufnr)
-  if selection and selection.path and selection.path:match("%.pdf$") then
-    vim.fn.jobstart({ "zathura", selection.path }, { detach = true })
-  else
-    vim.cmd("edit " .. selection.path)
+  if selection and selection.path then
+    -- Handle PDFs with Zathura
+    if selection.path:match("%.pdf$") then
+      vim.fn.jobstart({ "zathura", selection.path }, { detach = true })
+    -- Handle images with Preview
+    elseif selection.path:match("%.png$") or
+           selection.path:match("%.jpe?g$") or
+           selection.path:match("%.gif$") or
+           selection.path:match("%.bmp$") or
+           selection.path:match("%.tiff?$") or
+           selection.path:match("%.webp$") then
+      vim.fn.jobstart({ "open", selection.path }, { detach = true })
+    else
+      vim.cmd("edit " .. selection.path)
+    end
   end
 end
 
@@ -457,8 +485,16 @@ lvim.builtin.telescope.defaults.mappings = {
   i = {
     ["<CR>"] = function(prompt_bufnr)
       local selection = require("telescope.actions.state").get_selected_entry()
-      if selection and selection.path and selection.path:match("%.pdf$") then
-        open_with_zathura(prompt_bufnr)
+      if selection and selection.path and (
+        selection.path:match("%.pdf$") or
+        selection.path:match("%.png$") or
+        selection.path:match("%.jpe?g$") or
+        selection.path:match("%.gif$") or
+        selection.path:match("%.bmp$") or
+        selection.path:match("%.tiff?$") or
+        selection.path:match("%.webp$")
+      ) then
+        open_with_system_app(prompt_bufnr)
       else
         require("telescope.actions").select_default(prompt_bufnr)
       end
@@ -467,8 +503,16 @@ lvim.builtin.telescope.defaults.mappings = {
   n = {
     ["<CR>"] = function(prompt_bufnr)
       local selection = require("telescope.actions.state").get_selected_entry()
-      if selection and selection.path and selection.path:match("%.pdf$") then
-        open_with_zathura(prompt_bufnr)
+      if selection and selection.path and (
+        selection.path:match("%.pdf$") or
+        selection.path:match("%.png$") or
+        selection.path:match("%.jpe?g$") or
+        selection.path:match("%.gif$") or
+        selection.path:match("%.bmp$") or
+        selection.path:match("%.tiff?$") or
+        selection.path:match("%.webp$")
+      ) then
+        open_with_system_app(prompt_bufnr)
       else
         require("telescope.actions").select_default(prompt_bufnr)
       end
