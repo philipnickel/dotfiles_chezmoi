@@ -17,7 +17,7 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 # See: https://nikitabobko.github.io/AeroSpace/guide#layouts
 # The 'accordion-padding' specifies the size of accordion padding
 # You can set 0 to disable the padding feature
-accordion-padding = 2
+accordion-padding = 1
 
 # Possible values: tiles|accordion
 default-root-container-layout = 'tiles'
@@ -43,12 +43,12 @@ automatically-unhide-macos-hidden-apps = false
 # Gaps between windows (inner-*) and between monitor edges (outer-*).
 # Matches the padding/window_gap values from the yabai config
 [gaps]
-    inner.horizontal = 2
-    inner.vertical =   2
-    outer.left =       2
-    outer.bottom =     2
-    outer.top =        2
-    outer.right =      2
+    inner.horizontal = 1
+    inner.vertical =   1
+    outer.left =       1
+    outer.bottom =     1
+    outer.top =        1
+    outer.right =      1
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -85,10 +85,10 @@ automatically-unhide-macos-hidden-apps = false
     alt-shift-l = 'move right'
 
     # Directional resize bindings (smart keeps orientation awareness)
-    cmd-alt-ctrl-shift-h = 'resize smart -50'
-    cmd-alt-ctrl-shift-l = 'resize smart +50'
-    cmd-alt-ctrl-shift-k = 'resize smart-opposite -50'
-    cmd-alt-ctrl-shift-j = 'resize smart-opposite +50'
+    cmd-alt-ctrl-shift-h = 'resize smart -25'
+    cmd-alt-ctrl-shift-l = 'resize smart +25'
+    cmd-alt-ctrl-shift-k = 'resize smart-opposite -25'
+    cmd-alt-ctrl-shift-j = 'resize smart-opposite +25'
 
     # Fullscreen toggle
 #cmd-alt-ctrl-enter = 'fullscreen'
@@ -99,6 +99,9 @@ automatically-unhide-macos-hidden-apps = false
     cmd-alt-ctrl-3 = 'workspace 3'
     cmd-alt-ctrl-4 = 'workspace 4'
     cmd-alt-ctrl-5 = 'workspace 5'
+    cmd-alt-ctrl-6 = 'workspace 6'
+    cmd-alt-ctrl-n = 'workspace-back-and-forth'
+
 
     # Move active window then follow focus (mirrors f18 + shift + number)
     cmd-alt-ctrl-shift-1 = ['move-node-to-workspace 1', 'workspace 1']
@@ -106,6 +109,7 @@ automatically-unhide-macos-hidden-apps = false
     cmd-alt-ctrl-shift-3 = ['move-node-to-workspace 3', 'workspace 3']
     cmd-alt-ctrl-shift-4 = ['move-node-to-workspace 4', 'workspace 4']
     cmd-alt-ctrl-shift-5 = ['move-node-to-workspace 5', 'workspace 5']
+    cmd-alt-ctrl-shift-6 = ['move-node-to-workspace 6', 'workspace 6']
 
     # Quick utility bindings
     cmd-alt-ctrl-y = 'reload-config'

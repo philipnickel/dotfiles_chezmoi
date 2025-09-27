@@ -2,7 +2,7 @@ return {
     plus = "",
     loading = "",
     apple = "",
-    rebel = "",
+    rebel = "",
     empire = "",
     gear = "",
     cpu = "",
