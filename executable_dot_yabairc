@@ -52,5 +52,7 @@ echo "yabai configuration loaded.."
 \n+# Ensure Zathura windows are managed immediately
 # Manage Zathura by default
 yabai -m rule --add app="^Zathura$" manage=on
+# Remove titlebar for Zathura windows
+yabai -m rule --add app="^Zathura$" titlebar=off
 # Force-reattach new Zathura windows into the tiling tree if they slip through
 yabai -m signal --add label=fix-zathura event=window_created app="^Zathura$" action='yabai -m window --toggle float; yabai -m window --toggle float'

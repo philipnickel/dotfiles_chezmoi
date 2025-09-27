@@ -198,6 +198,14 @@ export PATH=$HOME/.npm-global/bin:$PATH
 export PATH="/Applications/flutter/bin:$PATH"
 
 export PATH="$HOME/.local/bin:$PATH"
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  if command -v launchctl >/dev/null; then
+    dbus_socket=$(launchctl print "gui/$(id -u)/org.freedesktop.dbus-session" 2>/dev/null | awk -F' => ' '/DBUS_LAUNCHD_SESSION_BUS_SOCKET/ {print $2; exit}')
+    if [[ -n "$dbus_socket" ]]; then
+      export DBUS_SESSION_BUS_ADDRESS="unix:path=$dbus_socket"
+    fi
+  fi
+fi
 
 alias pdf='zathura'
 alias lv='lvim'
@@ -223,3 +231,4 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
+export PATH="$HOME/.local/bin:$PATH"

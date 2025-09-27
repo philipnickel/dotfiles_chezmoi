@@ -255,6 +255,22 @@ lvim.builtin.which_key.mappings["o"] = {
   s = { function() require("otter").ask_rename() end, "Rename" },
 }
 
+-- LaTeX/VimTeX keybindings (using local leader, which is '\' by default)
+lvim.builtin.which_key.mappings["l"] = {
+  name = "LaTeX",
+  l = { "<cmd>VimtexCompile<cr>", "Compile" },
+  v = { "<cmd>VimtexView<cr>", "View PDF" },
+  k = { "<cmd>VimtexStop<cr>", "Stop" },
+  c = { "<cmd>VimtexClean<cr>", "Clean" },
+  C = { "<cmd>VimtexClean!<cr>", "Clean All" },
+  s = { "<cmd>VimtexStatus<cr>", "Status" },
+  i = { "<cmd>VimtexInfo<cr>", "Info" },
+  t = { "<cmd>VimtexTocToggle<cr>", "Toggle TOC" },
+  T = { "<cmd>VimtexTocOpen<cr>", "Open TOC" },
+  w = { "<cmd>VimtexCountWords<cr>", "Count Words" },
+  e = { "<cmd>VimtexErrors<cr>", "Show Errors" },
+}
+
 -- Code block creation helpers
 local function insert_code_block(lang)
   local lines = {
@@ -303,14 +319,25 @@ lvim.builtin.which_key.mappings["f"] = {
   l = { "<cmd>Telescope loclist<cr>", "Location list" },
 }
 
--- Quarto filetype detection
+-- Filetype detection
 vim.filetype.add({
   extension = {
     qmd = "quarto",
+    tex = "tex",
+    latex = "tex",
   },
   pattern = {
     ["*.qmd"] = "quarto",
+    ["*.tex"] = "tex",
+    ["*.latex"] = "tex",
   },
+})
+
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "*.tex", "*.latex" },
+  callback = function(args)
+    vim.api.nvim_buf_set_option(args.buf, "filetype", "tex")
+  end,
 })
 
 -- Auto-activate otter for quarto files
@@ -442,7 +469,7 @@ lspconfig.pyright.setup({
   },
 })
 
--- Treesitter configuration for Quarto
+-- Treesitter configuration for Quarto and LaTeX
 vim.list_extend(lvim.builtin.treesitter.ensure_installed, {
   "r",
   "python",
@@ -456,6 +483,70 @@ vim.list_extend(lvim.builtin.treesitter.ensure_installed, {
   "javascript",
   "typescript",
   "lua",
+  "latex",
+  "bibtex",
+})
+
+-- Pick a PDF viewer that is available on the system
+local function pick_vimtex_viewer()
+  if vim.fn.executable("zathura") == 1 then
+    return "zathura"
+  end
+
+  if vim.fn.executable("sioyek") == 1 then
+    return "sioyek"
+  end
+
+  local uname = vim.loop.os_uname().sysname
+  if uname == "Darwin" and vim.fn.executable("open") == 1 then
+    vim.g.vimtex_view_general_viewer = "open"
+    vim.g.vimtex_view_general_options = "-a Preview"
+    return "general"
+  end
+
+  if vim.fn.executable("xdg-open") == 1 then
+    vim.g.vimtex_view_general_viewer = "xdg-open"
+    vim.g.vimtex_view_general_options = ""
+    return "general"
+  end
+
+  return nil -- fall back to VimTeX defaults if nothing sensible found
+end
+
+local vimtex_view_method = pick_vimtex_viewer()
+if vimtex_view_method then
+vim.g.vimtex_view_method = vimtex_view_method
+
+  if vimtex_view_method == "zathura" then
+    vim.g.vimtex_view_zathura_use_synctex = 1
+  end
+end
+vim.g.tex_flavor = 'latex'
+vim.g.vimtex_quickfix_mode = 0
+vim.g.vimtex_compiler_method = 'latexmk'
+vim.g.vimtex_compiler_progname = 'nvr'
+vim.g.vimtex_compiler_latexmk = {
+  build_dir = '',
+  callback = 1,
+  continuous = 1,
+  executable = 'latexmk',
+  hooks = {},
+  options = {
+    '-verbose',
+    '-file-line-error',
+    '-synctex=1',
+    '-interaction=nonstopmode',
+  },
+}
+
+-- VimTeX plugin installation
+table.insert(lvim.plugins, {
+  "lervag/vimtex",
+  lazy = false,     -- we don't want to lazy load VimTeX
+  config = function()
+    -- VimTeX is now loaded - no additional config needed
+    -- since we set the global variables above
+  end
 })
 
 -- Configure Telescope to open PDFs with Zathura and images with Preview

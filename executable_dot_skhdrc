@@ -21,6 +21,7 @@ rcmd + shift - h : yabai -m window --warp west
 rcmd + shift - j : yabai -m window --warp south
 rcmd + shift - k : yabai -m window --warp north
 rcmd + shift - l : yabai -m window --warp east
+rcmd + shift - t : yabai -m window --toggle titlebar
 
 # Workspaces
 f18 - 1 : yabai -m space --focus 1
