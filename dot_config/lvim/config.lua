@@ -9,6 +9,9 @@
 --
 lvim.transparent_window = true
 
+vim.opt.relativenumber = false
+vim.opt.wrap = true
+
 table.insert(lvim.plugins, {
   "zbirenbaum/copilot-cmp",
   event = "InsertEnter",
