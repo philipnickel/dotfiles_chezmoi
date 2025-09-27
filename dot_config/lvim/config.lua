@@ -493,7 +493,10 @@ vim.list_extend(lvim.builtin.treesitter.ensure_installed, {
 -- Pick a PDF viewer that is available on the system
 local function pick_vimtex_viewer()
   if vim.fn.executable("zathura") == 1 then
-    return "zathura"
+    if vim.env.DBUS_SESSION_BUS_ADDRESS and vim.env.DBUS_SESSION_BUS_ADDRESS ~= "" then
+      return "zathura"
+    end
+    return "zathura_simple"
   end
 
   if vim.fn.executable("sioyek") == 1 then
@@ -518,10 +521,12 @@ end
 
 local vimtex_view_method = pick_vimtex_viewer()
 if vimtex_view_method then
-vim.g.vimtex_view_method = vimtex_view_method
+  vim.g.vimtex_view_method = vimtex_view_method
 
   if vimtex_view_method == "zathura" then
     vim.g.vimtex_view_zathura_use_synctex = 1
+  elseif vimtex_view_method == "zathura_simple" then
+    vim.g.vimtex_view_zathura_use_synctex = 0
   end
 end
 vim.g.tex_flavor = 'latex'
