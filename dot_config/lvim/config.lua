@@ -557,6 +557,13 @@ table.insert(lvim.plugins, {
   end
 })
 
+-- Load custom LuaSnip snippets
+local ok_luasnip, luasnip_loader = pcall(require, 'luasnip.loaders.from_lua')
+if ok_luasnip then
+  local snippet_path = vim.fn.stdpath('config') .. '/luasnippets'
+  luasnip_loader.lazy_load({ paths = snippet_path })
+end
+
 -- Configure Telescope to open PDFs with Zathura and images with Preview
 local function open_with_system_app(prompt_bufnr)
   local selection = require("telescope.actions.state").get_selected_entry()
