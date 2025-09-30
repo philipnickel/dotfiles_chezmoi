@@ -20,3 +20,5 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
     vim.api.nvim_buf_set_option(args.buf, "filetype", "tex")
   end,
 })
+
+-- PDF handling is configured in pdf_handler.lua

@@ -37,9 +37,26 @@ lvim.builtin.which_key.mappings["l"] = {
   s = { "<cmd>VimtexToggleMain<cr>", "Toggle Main" },
 }
 
+lvim.builtin.which_key.mappings["p"] = {
+  name = "PDF",
+  v = { "<leader>pv", "Open PDF with Zathura" },
+  o = { "<leader>pv", "Open PDF with Zathura" },
+}
+
+lvim.builtin.which_key.mappings["f"] = {
+  name = "Find",
+  f = { "<cmd>Telescope find_files<cr>", "Find File" },
+  g = { "<cmd>Telescope live_grep<cr>", "Grep Text" },
+  b = { "<cmd>Telescope buffers<cr>", "Find Buffer" },
+  h = { "<cmd>Telescope help_tags<cr>", "Help Tags" },
+  r = { "<cmd>Telescope oldfiles<cr>", "Recent Files" },
+  c = { "<cmd>Telescope commands<cr>", "Commands" },
+}
+
 -- Source configuration files
 require("plugins")
 require("keymaps")
 require("lsp")
 require("treesitter")
 require("filetypes")
+require("pdf_handler")

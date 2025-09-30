@@ -43,6 +43,7 @@ table.insert(lvim.plugins, {
   ft = { "tex", "latex" },
   config = function()
     vim.g.vimtex_view_method = "zathura"
+    vim.g.vimtex_view_zathura_options = "--synctex-forward @line:@col:@file"
     vim.g.vimtex_quickfix_mode = 0
     vim.g.vimtex_compiler_method = "latexmk"
     vim.g.vimtex_compiler_latexmk = {
