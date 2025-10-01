@@ -27,9 +27,9 @@ lvim.builtin.which_key.active = true
 lvim.builtin.which_key.setup = lvim.builtin.which_key.setup or {}
 
 -- Use LunarVim's built-in which-key system
-lvim.builtin.which_key.mappings["m"] = {
-  name = "Markdown",
-  p = { "<cmd>MarkdownPreviewToggle<cr>", "Toggle Preview" },
+lvim.builtin.which_key.mappings["p"] = {
+  name = "Preview",
+  p = { "<cmd>RenderMarkdown toggle<cr>", "Toggle Render Markdown" },
 }
 
 lvim.builtin.which_key.mappings["l"] = {
@@ -46,12 +46,6 @@ lvim.builtin.which_key.mappings["l"] = {
   m = { "<cmd>VimtexImapsList<cr>", "Imaps List" },
   x = { "<cmd>VimtexReload<cr>", "Reload" },
   s = { "<cmd>VimtexToggleMain<cr>", "Toggle Main" },
-}
-
-lvim.builtin.which_key.mappings["p"] = {
-  name = "PDF",
-  v = { "<leader>pv", "Open PDF with Zathura" },
-  o = { "<leader>pv", "Open PDF with Zathura" },
 }
 
 lvim.builtin.which_key.mappings["f"] = {

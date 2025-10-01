@@ -394,3 +394,35 @@ table.insert(lvim.plugins, {
     require('nvim-peekup.config').on_keystroke["paste_reg"] = '*'
   end,
 })
+
+-- render-markdown.nvim for better markdown rendering
+table.insert(lvim.plugins, {
+  'MeanderingProgrammer/render-markdown.nvim',
+  dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' },
+  ft = { 'markdown', 'quarto' },
+  opts = {
+    file_types = { 'markdown', 'quarto' },
+    code = {
+      enabled = true,
+      sign = true,
+      style = 'language',
+      -- The language_border character (default '█') fills the space around the language label
+      language_border = '█',
+    },
+  },
+  config = function(_, opts)
+    require('render-markdown').setup(opts)
+
+    -- Transparent background for code block
+    vim.api.nvim_set_hl(0, 'RenderMarkdownCode', {
+      bg = 'NONE',
+    })
+
+    -- RenderMarkdownCodeBorder: This is the key highlight group for the language border
+    -- The bg color gets converted to fg via bg_as_fg() for rendering the language_border character
+    vim.api.nvim_set_hl(0, 'RenderMarkdownCodeBorder', {
+      fg = '#5E81AC',  -- Not used directly for the border line
+      bg = '#434C5E',  -- This becomes the foreground color of the border via bg_as_fg()
+    })
+  end,
+})
