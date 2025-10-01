@@ -537,6 +537,18 @@ lvim.builtin.which_key.mappings["s"] = {
       " LaTeX Snippets Smart Features Guide "
     )
   end, "Smart features guide" },
+  y = { function()
+    open_markdown_float(
+      vim.fn.stdpath('config') .. "/SYMPY_GUIDE.md",
+      " SymPy Mathematical Evaluation Guide "
+    )
+  end, "SymPy evaluation guide" },
+  p = { function()
+    open_markdown_float(
+      vim.fn.stdpath('config') .. "/SYMPY_GUIDE.md",
+      " SymPy Mathematical Evaluation Guide "
+    )
+  end, "SymPy guide" },
   m = { function()
     -- Toggle VimTeX character mappings using native commands
     local current_state = vim.g.vimtex_imaps_enabled
@@ -551,3 +563,4 @@ lvim.builtin.which_key.mappings["s"] = {
     end
   end, "Toggle VimTeX mappings" },
 }
+

@@ -3,6 +3,9 @@
 
 -- which-key is handled by LunarVim's built-in system
 
+-- Load SymPy configuration
+require('sympy-config')
+
 -- Copilot integration
 table.insert(lvim.plugins, {
   "zbirenbaum/copilot-cmp",
