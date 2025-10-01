@@ -18,7 +18,21 @@ do
   local get_offset_encoding = util._get_offset_encoding
 
   local function pick_offset_encoding(buf)
-    local lookup = buf and { bufnr = buf } or {}
+    local resolved
+    if type(buf) == "number" then
+      resolved = buf
+    elseif type(buf) == "string" then
+      local maybe = tonumber(buf)
+      if maybe then
+        resolved = maybe
+      end
+    end
+
+    if resolved == nil or resolved < 0 then
+      resolved = vim.api.nvim_get_current_buf()
+    end
+
+    local lookup = resolved and { bufnr = resolved } or {}
     local encoding
 
     for _, client in ipairs(vim.lsp.get_clients(lookup)) do
