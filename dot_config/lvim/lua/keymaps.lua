@@ -28,7 +28,14 @@ local function insert_code_chunk(lang)
 end
 
 local function new_terminal(lang)
-  vim.cmd('vsplit term://' .. lang)
+  -- Create a tmux split and launch the terminal
+  vim.fn.system('tmux split-window -h "' .. lang .. '"')
+  -- Switch back to the previous pane (nvim)
+  vim.fn.system('tmux select-pane -t {last}')
+  -- Configure slime to target tmux and the last pane
+  vim.g.slime_target = "tmux"
+  vim.g.slime_default_config = { socket_name = "default", target_pane = "{last}" }
+  vim.print('Created tmux split with: ' .. lang)
 end
 
 local function new_terminal_smart_python()
@@ -39,6 +46,12 @@ local function new_terminal_smart_python()
   else
     new_terminal('python')
   end
+end
+
+local function close_tmux_repl()
+  -- Kill the last tmux pane (the REPL)
+  vim.fn.system('tmux kill-pane -t {last}')
+  vim.print('Closed tmux REPL pane')
 end
 
 local function delete_cell()
@@ -311,9 +324,17 @@ lvim.builtin.which_key.mappings["c"] = {
   m = { "<cmd>lua vim.fn.call('slime#config', {})<cr>", "Mark terminal" },
   s = { "<cmd>lua vim.fn.call('slime#config', {})<cr>", "Set terminal" },
   t = { "<cmd>lua vim.g.slime_target = vim.g.slime_target == 'tmux' and 'neovim' or 'tmux'; vim.print('Slime target: ' .. vim.g.slime_target)<cr>", "Toggle tmux/neovim" },
-  r = { function() new_terminal('R --no-save') end, "New R terminal" },
-  p = { new_terminal_smart_python, "New Python/IPython terminal" },
+  c = { close_tmux_repl, "Close tmux REPL pane" },
   i = { new_terminal_smart_python, "New Python/IPython terminal" },
+  r = { function()
+    -- Use radian if available, otherwise fall back to R
+    local has_radian = vim.fn.executable('radian') == 1
+    if has_radian then
+      new_terminal('radian')
+    else
+      new_terminal('R --no-save')
+    end
+  end, "New R/radian terminal" },
   j = { function() new_terminal('julia') end, "New Julia terminal" },
   n = { function() new_terminal('$SHELL') end, "New Shell terminal" },
 }

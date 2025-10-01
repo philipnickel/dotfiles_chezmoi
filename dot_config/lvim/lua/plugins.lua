@@ -110,8 +110,9 @@ table.insert(lvim.plugins, {
       endfunction
     ]])
 
-    -- Default to neovim, but can be changed to tmux
-    vim.g.slime_target = "neovim"
+    -- Default to tmux (send code to tmux pane)
+    vim.g.slime_target = "tmux"
+    vim.g.slime_default_config = { socket_name = "default", target_pane = "{last}" }
     vim.g.slime_no_mappings = true
     vim.g.slime_python_ipython = 1
   end,
@@ -119,7 +120,7 @@ table.insert(lvim.plugins, {
     vim.g.slime_input_pid = false
     vim.g.slime_suggest_default = true
     vim.g.slime_menu_config = false
-    vim.g.slime_neovim_ignore_unlisted = true
+    vim.g.slime_dont_ask_default = 1  -- Don't ask for confirmation, use default pane
 
     local function mark_terminal()
       local job_id = vim.b.terminal_job_id
