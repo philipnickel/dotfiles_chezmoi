@@ -11,6 +11,45 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
   }
 )
 
+-- Silence the noisy warning about missing position encodings on 0.10
+do
+  local util = vim.lsp.util
+  local make_position_params = util.make_position_params
+  local get_offset_encoding = util._get_offset_encoding
+
+  local function pick_offset_encoding(buf)
+    local lookup = buf and { bufnr = buf } or {}
+    local encoding
+
+    for _, client in ipairs(vim.lsp.get_clients(lookup)) do
+      local client_encoding = client.offset_encoding or "utf-16"
+      if not encoding then
+        encoding = client_encoding
+      elseif encoding ~= client_encoding then
+        encoding = "utf-16"
+        break
+      end
+    end
+
+    return encoding or "utf-16"
+  end
+
+  util.make_position_params = function(win, buf, encoding)
+    if not encoding then
+      encoding = pick_offset_encoding(buf)
+    end
+
+    return make_position_params(win, buf, encoding)
+  end
+
+  util._get_offset_encoding = function(buf)
+    if buf then
+      return pick_offset_encoding(buf)
+    end
+    return get_offset_encoding(buf)
+  end
+end
+
 -- Disable the default K mapping for LSP hover (conflicts with navigation)
 lvim.lsp.buffer_mappings.normal_mode["K"] = nil
 
