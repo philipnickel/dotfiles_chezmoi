@@ -428,12 +428,7 @@ s({trig = "([bBpvV])gn", name = "New generic matrix", snippetType = "autosnippet
 
 -- Subscripts and superscripts
 
-s({trig = ";", name = "Short subscript", snippetType = "autosnippet", wordTrig = false},
-    {
-        t("_")
-    },
-    {condition = in_mathzone}
-),
+-- Removed ; -> _ snippet to allow typing literal ; in math mode
 
 s({trig = ":", name = "Subscript", snippetType = "autosnippet", wordTrig = false},
     {

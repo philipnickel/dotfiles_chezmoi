@@ -55,8 +55,45 @@ table.insert(lvim.plugins, {
         "-verbose",
       },
     }
+    
+    -- VimTeX native spell checking configuration
+    vim.g.vimtex_syntax_enabled = 1
+    vim.g.vimtex_syntax_conceal = {
+      accents = 1,
+      ligatures = 1,
+      it = 1,
+      bold = 1,
+      italic = 1,
+      math_bounds = 1,
+      math_delimiters = 1,
+      math_fracs = 1,
+      math_super_sub = 1,
+      math_symbols = 1,
+      sections = 0,
+      spacing = 0,
+      greek = 1,
+      math_rm = 1,
+    }
+    
+    -- Enable spell checking for LaTeX files
+    vim.api.nvim_create_autocmd({ "FileType" }, {
+      pattern = { "tex", "latex" },
+      callback = function()
+        vim.opt_local.spell = true
+        vim.opt_local.spelllang = "en_us,nl"
+        
+        -- Quick spell correction: Ctrl+L corrects previous spelling mistake
+        vim.keymap.set("i", "<C-l>", "<c-g>u<Esc>[s1z=`]a<c-g>u", {
+          desc = "Correct previous spelling mistake",
+          silent = true,
+          buffer = true,
+        })
+      end,
+    })
   end,
 })
+
+-- Spell checking handled by VimTeX natively
 
 -- Quarto support
 table.insert(lvim.plugins, {

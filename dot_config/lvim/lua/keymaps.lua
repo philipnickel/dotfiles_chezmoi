@@ -417,9 +417,16 @@ lvim.builtin.which_key.mappings['"'] = {
 }
 
 -- Helper function to open markdown files in floating window
-local function open_markdown_float(filepath, title)
-  -- Read the file content
-  local content = vim.fn.readfile(filepath)
+local function open_markdown_float(filepath_or_content, title)
+  -- Handle both file paths and content tables
+  local content
+  if type(filepath_or_content) == "string" then
+    -- It's a file path, read the file
+    content = vim.fn.readfile(filepath_or_content)
+  else
+    -- It's already content (table of lines)
+    content = filepath_or_content
+  end
 
   -- Create a buffer
   local buf = vim.api.nvim_create_buf(false, true)
@@ -464,16 +471,83 @@ lvim.builtin.which_key.mappings["s"] = {
   name = "Snippets",
   e = { "<cmd>lua require('luasnip.loaders').edit_snippet_files()<cr>", "Edit snippets" },
   r = { "<cmd>lua require('luasnip.loaders.from_lua').load({paths = vim.fn.stdpath('config') .. '/luasnippets/'})<cr>", "Reload snippets" },
-  d = { function()
+  s = { function()
+    -- Show snippet documentation by reading snippet files
+    local function get_snippet_info()
+      local snippets = {}
+      local snippet_dir = vim.fn.stdpath('config') .. '/luasnippets/tex/'
+      
+      -- Read all snippet files
+      local files = vim.fn.glob(snippet_dir .. '*.lua', false, true)
+      for _, file in ipairs(files) do
+        local content = vim.fn.readfile(file)
+        local filename = vim.fn.fnamemodify(file, ':t:r')
+        
+        for _, line in ipairs(content) do
+          local trig_match = line:match('trig%s*=%s*"([^"]*)"')
+          local name_match = line:match('name%s*=%s*"([^"]*)"')
+          local dscr_match = line:match('dscr%s*=%s*"([^"]*)"')
+          
+          if trig_match and trig_match ~= '' then
+            table.insert(snippets, {
+              trigger = trig_match,
+              name = name_match or '',
+              description = dscr_match or '',
+              file = filename
+            })
+          end
+        end
+      end
+      
+      return snippets
+    end
+    
+    local snippets = get_snippet_info()
+    local content = {"# LaTeX Snippets Documentation", ""}
+    
+    -- Group by file
+    local files = {}
+    for _, snippet in ipairs(snippets) do
+      if not files[snippet.file] then
+        files[snippet.file] = {}
+      end
+      table.insert(files[snippet.file], snippet)
+    end
+    
+    for filename, file_snippets in pairs(files) do
+      table.insert(content, "## " .. filename:gsub("^%l", string.upper))
+      table.insert(content, "")
+      table.insert(content, "| Trigger | Name | Description |")
+      table.insert(content, "|---------|------|-------------|")
+      
+      for _, snippet in ipairs(file_snippets) do
+        local trigger = "`" .. snippet.trigger .. "`"
+        local name = snippet.name ~= '' and snippet.name or '-'
+        local description = snippet.description ~= '' and snippet.description or '-'
+        table.insert(content, "| " .. trigger .. " | " .. name .. " | " .. description .. " |")
+      end
+      table.insert(content, "")
+    end
+    
+    open_markdown_float(content, " LaTeX Snippets Documentation ")
+  end, "Show snippet documentation" },
+  g = { function()
     open_markdown_float(
-      vim.fn.stdpath('config') .. "/luasnippets/README.md",
-      " LuaSnip Documentation "
+      vim.fn.stdpath('config') .. "/GUIDE.md",
+      " LaTeX Snippets Smart Features Guide "
     )
-  end, "Snippet docs" },
-  h = { function()
-    open_markdown_float(
-      vim.fn.stdpath('config') .. "/LUASNIP_SETUP.md",
-      " LuaSnip Setup Guide "
-    )
-  end, "Setup guide" },
+  end, "Smart features guide" },
+  m = { function()
+    -- Toggle VimTeX character mappings using native commands
+    local current_state = vim.g.vimtex_imaps_enabled
+    if current_state == 0 then
+      vim.g.vimtex_imaps_enabled = 1
+      vim.cmd("VimtexReload")
+      vim.notify("VimTeX character mappings: ENABLED", vim.log.levels.INFO)
+    else
+      vim.g.vimtex_imaps_enabled = 0
+      vim.cmd("VimtexReload")
+      vim.notify("VimTeX character mappings: DISABLED", vim.log.levels.INFO)
+    end
+  end, "Toggle VimTeX mappings" },
 }
