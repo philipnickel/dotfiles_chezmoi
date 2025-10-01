@@ -8,6 +8,19 @@ fi
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
+export ZSH_CACHE_DIR="$ZSH/cache"
+export ZSH_COMPDUMP="$ZSH_CACHE_DIR/.zcompdump-$HOST-$ZSH_VERSION"
+export DISABLE_UPDATE_PROMPT=true
+export DISABLE_AUTO_UPDATE=true
+export ZSH_DISABLE_COMPFIX=true
+
+# Set oh-my-zsh configuration variables to prevent warnings
+export CASE_SENSITIVE="false"
+export ENABLE_CORRECTION="false"
+export HISTFILE="$HOME/.zsh_history"
+export DISABLE_MAGIC_FUNCTIONS="false"
+export INSIDE_EMACS=""
+export DISABLE_LS_COLORS="false"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -69,6 +82,7 @@ ZSH_THEME="robbyrussell"
 
 # Would you like to use another custom folder than $ZSH/custom?
 # ZSH_CUSTOM=/path/to/new-custom-folder
+ZSH_CUSTOM="$ZSH/custom"
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
@@ -232,3 +246,10 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 export PATH="$HOME/.local/bin:$PATH"
+
+# Quarto browser configuration - opens new windows instead of tabs
+export BROWSER="osascript -e \"tell application \\\"Zen\\\" to make new document with properties {URL:\\\"%s\\\"}\""
+
+# Suppress Neovim deprecation warnings
+export NVIM_APPNAME="lvim"
+export VIMRUNTIME="/opt/homebrew/Cellar/neovim/0.11.3/share/nvim/runtime"

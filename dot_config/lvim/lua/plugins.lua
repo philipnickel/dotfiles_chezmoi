@@ -206,14 +206,76 @@ table.insert(lvim.plugins, {
   end,
 })
 
+-- Image support for Molten
+table.insert(lvim.plugins, {
+  "3rd/image.nvim",
+  dependencies = {
+    "luarocks.nvim",
+  },
+  -- Only load in GUI or compatible terminals
+  cond = function()
+    return vim.fn.has('gui_running') == 1 or vim.env.DISPLAY or vim.env.TERM_PROGRAM == 'kitty'
+  end,
+  opts = {
+    backend = "kitty",  -- or "ueberzug" or "auto"
+    integrations = {
+      markdown = {
+        enabled = true,
+        clear_in_insert_mode = false,
+        download_remote_images = true,
+        only_render_image_at_cursor = false,
+        filetypes = { "markdown", "vimwiki", "quarto" },
+      },
+      neorg = {
+        enabled = false,
+      },
+      html = {
+        enabled = false,
+      },
+      css = {
+        enabled = false,
+      },
+    },
+    max_width = 100,
+    max_height = 12,
+    max_width_window_percentage = nil,
+    max_height_window_percentage = 50,
+    window_overlap_clear_enabled = false,
+    window_overlap_clear_ft_ignore = { "cmp_menu", "cmp_docs", "" },
+    editor_only_render_when_focused = false,
+    tmux_show_only_in_active_window = false,
+    hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp" },
+  },
+  config = function(_, opts)
+    require("image").setup(opts)
+  end,
+})
+
+-- Luarocks for image.nvim
+table.insert(lvim.plugins, {
+  "vhyrro/luarocks.nvim",
+  priority = 1001,
+  opts = {
+    rocks = { "magick" },
+  },
+})
+
 -- Molten for Jupyter kernel integration
 table.insert(lvim.plugins, {
   "benlubas/molten-nvim",
   version = "^1.0.0",
   build = ":UpdateRemotePlugins",
   enabled = true,
+  dependencies = {
+    "3rd/image.nvim",
+  },
   init = function()
-    vim.g.molten_image_provider = "image.nvim"
+    -- Set image provider based on environment
+    if vim.fn.has('gui_running') == 1 or vim.env.DISPLAY or vim.env.TERM_PROGRAM == 'kitty' then
+      vim.g.molten_image_provider = "image.nvim"
+    else
+      vim.g.molten_image_provider = "none"
+    end
     vim.g.molten_auto_open_output = true
     vim.g.molten_auto_open_html_in_browser = true
     vim.g.molten_tick_rate = 200
@@ -223,11 +285,15 @@ table.insert(lvim.plugins, {
       local quarto_cfg = require("quarto.config").config
       quarto_cfg.codeRunner.default_method = "molten"
       vim.cmd([[MoltenInit]])
+      vim.g.molten_initialized = true
+      vim.print("Molten initialized - using Molten for cell execution")
     end
     local function molten_deinit()
       local quarto_cfg = require("quarto.config").config
       quarto_cfg.codeRunner.default_method = "slime"
       vim.cmd([[MoltenDeinit]])
+      vim.g.molten_initialized = false
+      vim.print("Molten stopped - using Slime for cell execution")
     end
     vim.keymap.set("n", "<localleader>mi", molten_init, { silent = true, desc = "Initialize molten" })
     vim.keymap.set("n", "<localleader>md", molten_deinit, { silent = true, desc = "Stop molten" })
@@ -236,4 +302,71 @@ table.insert(lvim.plugins, {
     vim.keymap.set("n", "<localleader>mh", ":MoltenHideOutput<CR>", { silent = true, desc = "hide output" })
     vim.keymap.set("n", "<localleader>ms", ":noautocmd MoltenEnterOutput<CR>", { silent = true, desc = "show/enter output" })
   end,
+})
+
+-- Sidekick.nvim - AI sidekick with Copilot LSP integration
+table.insert(lvim.plugins, {
+  "folke/sidekick.nvim",
+  opts = {
+    -- CLI configuration
+    cli = {
+      mux = {
+        backend = "tmux", -- or "zellij"
+        enabled = true,
+      },
+    },
+  },
+  keys = {
+    {
+      "<tab>",
+      function()
+        -- if there is a next edit, jump to it, otherwise apply it if any
+        if not require("sidekick").nes_jump_or_apply() then
+          return "<Tab>" -- fallback to normal tab
+        end
+      end,
+      expr = true,
+      desc = "Goto/Apply Next Edit Suggestion",
+    },
+    {
+      "<c-.>",
+      function()
+        require("sidekick.cli").focus()
+      end,
+      desc = "Sidekick Switch Focus",
+      mode = { "n", "v" },
+    },
+    {
+      "<leader>aa",
+      function()
+        require("sidekick.cli").toggle({ focus = true })
+      end,
+      desc = "Sidekick Toggle CLI",
+      mode = { "n", "v" },
+    },
+    {
+      "<leader>ac",
+      function()
+        require("sidekick.cli").toggle({ name = "claude", focus = true })
+      end,
+      desc = "Sidekick Claude Toggle",
+      mode = { "n", "v" },
+    },
+    {
+      "<leader>ag",
+      function()
+        require("sidekick.cli").toggle({ name = "grok", focus = true })
+      end,
+      desc = "Sidekick Grok Toggle",
+      mode = { "n", "v" },
+    },
+    {
+      "<leader>ap",
+      function()
+        require("sidekick.cli").select_prompt()
+      end,
+      desc = "Sidekick Ask Prompt",
+      mode = { "n", "v" },
+    },
+  },
 })

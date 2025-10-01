@@ -9,6 +9,17 @@ lvim.transparent_window = true
 vim.opt.relativenumber = false
 vim.opt.wrap = true
 
+-- Suppress deprecation warnings by overriding the deprecated function
+vim.tbl_add_reverse_lookup = function(tbl)
+  -- Create reverse lookup table without deprecation warning
+  local reverse = {}
+  for k, v in pairs(tbl) do
+    reverse[v] = k
+  end
+  return reverse
+end
+
+
 -- Leader key is set to space by default in LunarVim
 
 -- Configure which-key to avoid loading conflicts
