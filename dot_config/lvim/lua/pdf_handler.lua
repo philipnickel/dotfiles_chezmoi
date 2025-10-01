@@ -83,9 +83,13 @@ lvim.builtin.telescope.on_config_done = function(telescope)
     defaults = {
       mappings = {
         i = {
+          ["<S-j>"] = actions.move_selection_next,
+          ["<S-k>"] = actions.move_selection_previous,
           ["<CR>"] = open_pdf_in_zathura,
         },
         n = {
+          ["<S-j>"] = actions.move_selection_next,
+          ["<S-k>"] = actions.move_selection_previous,
           ["<CR>"] = open_pdf_in_zathura,
         },
       },
