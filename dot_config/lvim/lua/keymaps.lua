@@ -394,3 +394,65 @@ lvim.builtin.which_key.mappings['"'] = {
   P = { "<Plug>PeekupPasteBefore", "Paste before from register" },
   x = { '"x', "Clear all registers (default binding)" },
 }
+
+-- Helper function to open markdown files in floating window
+local function open_markdown_float(filepath, title)
+  -- Read the file content
+  local content = vim.fn.readfile(filepath)
+
+  -- Create a buffer
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
+  vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown')
+  vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+
+  -- Calculate window size (80% of screen)
+  local width = math.floor(vim.o.columns * 0.8)
+  local height = math.floor(vim.o.lines * 0.8)
+  local row = math.floor((vim.o.lines - height) / 2)
+  local col = math.floor((vim.o.columns - width) / 2)
+
+  -- Window options
+  local opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    row = row,
+    col = col,
+    style = 'minimal',
+    border = 'rounded',
+    title = title,
+    title_pos = 'center',
+  }
+
+  -- Open the window
+  local win = vim.api.nvim_open_win(buf, true, opts)
+
+  -- Set window options
+  vim.api.nvim_win_set_option(win, 'wrap', true)
+  vim.api.nvim_win_set_option(win, 'linebreak', true)
+
+  -- Map escape to close the window
+  vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', '<cmd>close<cr>', { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<cmd>close<cr>', { noremap = true, silent = true })
+end
+
+-- LuaSnip snippet management
+lvim.builtin.which_key.mappings["s"] = {
+  name = "Snippets",
+  e = { "<cmd>lua require('luasnip.loaders').edit_snippet_files()<cr>", "Edit snippets" },
+  r = { "<cmd>lua require('luasnip.loaders.from_lua').load({paths = vim.fn.stdpath('config') .. '/luasnippets/'})<cr>", "Reload snippets" },
+  d = { function()
+    open_markdown_float(
+      vim.fn.stdpath('config') .. "/luasnippets/README.md",
+      " LuaSnip Documentation "
+    )
+  end, "Snippet docs" },
+  h = { function()
+    open_markdown_float(
+      vim.fn.stdpath('config') .. "/LUASNIP_SETUP.md",
+      " LuaSnip Setup Guide "
+    )
+  end, "Setup guide" },
+}
