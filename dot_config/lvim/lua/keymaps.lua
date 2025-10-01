@@ -384,3 +384,13 @@ lvim.builtin.which_key.mappings["a"] = {
   h = { function() require("sidekick.nes").have() end, "Check Suggestions" },
   x = { function() require("sidekick").clear() end, "Clear Suggestions" },
 }
+
+-- Register management with Peekup
+-- The plugin provides "" by default, we just add which-key descriptions for discoverability
+lvim.builtin.which_key.mappings['"'] = {
+  name = "Registers",
+  ['"'] = { '""', "View registers (default binding)" },
+  p = { "<Plug>PeekupPasteAfter", "Paste after from register" },
+  P = { "<Plug>PeekupPasteBefore", "Paste before from register" },
+  x = { '"x', "Clear all registers (default binding)" },
+}
