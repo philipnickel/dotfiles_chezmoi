@@ -14,8 +14,8 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
 -- Disable the default K mapping for LSP hover (conflicts with navigation)
 lvim.lsp.buffer_mappings.normal_mode["K"] = nil
 
--- Use Shift+H for hover (H = Hover)
-lvim.lsp.buffer_mappings.normal_mode["<S-h>"] = {
+-- Use Shift+I for hover (I = Info)
+lvim.lsp.buffer_mappings.normal_mode["<S-i>"] = {
   vim.lsp.buf.hover,
   "Show hover documentation"
 }

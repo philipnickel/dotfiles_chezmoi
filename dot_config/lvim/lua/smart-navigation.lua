@@ -40,8 +40,18 @@ local function get_comment_patterns()
   return patterns[ft] or { "^%s*#" }  -- Default to # if filetype not found
 end
 
--- Check if a line matches any comment pattern
+-- Check if a line is a Python cell delimiter (#%% or # %%)
+local function is_python_cell_delimiter(line_text)
+  return line_text:match("^%s*#%s*%%%%") ~= nil
+end
+
+-- Check if a line matches any comment pattern (excluding Python cell delimiters)
 local function is_comment_line(line_text, patterns)
+  -- For Python, skip cell delimiters
+  if vim.bo.filetype == "python" and is_python_cell_delimiter(line_text) then
+    return false
+  end
+
   for _, pattern in ipairs(patterns) do
     if line_text:match(pattern) then
       return true
@@ -142,8 +152,8 @@ function M.jump_to_next_heading()
   local current_line = vim.fn.line('.')
   local last_line = vim.fn.line('$')
 
-  -- Pattern matches # headings
-  local heading_pattern = "^#{1,6}%s"
+  -- Pattern matches # headings (one or more # followed by space)
+  local heading_pattern = "^#+ "
 
   for line_num = current_line + 1, last_line do
     local line_text = vim.fn.getline(line_num)
@@ -159,7 +169,7 @@ end
 
 function M.jump_to_prev_heading()
   local current_line = vim.fn.line('.')
-  local heading_pattern = "^#{1,6}%s"
+  local heading_pattern = "^#+ "
 
   for line_num = current_line - 1, 1, -1 do
     local line_text = vim.fn.getline(line_num)
@@ -174,16 +184,99 @@ function M.jump_to_prev_heading()
 end
 
 -- ============================================================================
+-- Quarto/Jupyter-Specific Navigation (code cells and headings)
+-- ============================================================================
+
+-- Jump to next code cell in Quarto/Jupyter files (ignores headings and comments)
+function M.jump_to_next_cell()
+  local current_line = vim.fn.line('.')
+  local last_line = vim.fn.line('$')
+  local ft = vim.bo.filetype
+
+  -- Patterns for code cells only (no headings, no comments)
+  local cell_open_pattern = "^```{.*}"  -- Opening fence with language spec (```{python})
+  local cell_close_pattern = "^```%s*$"  -- Closing fence (just ``` followed by optional whitespace)
+  local python_cell_pattern = "^%s*#%s*%%%%"  -- Python cell delimiter: #%% or # %% (with optional leading/between whitespace)
+
+  for line_num = current_line + 1, last_line do
+    local line_text = vim.fn.getline(line_num)
+
+    -- Check if it's an opening code fence (```{python}, ```{r}, etc.)
+    if line_text:match(cell_open_pattern) then
+      -- Jump to the line AFTER the opening fence (inside the code block)
+      vim.fn.cursor(line_num + 1, 1)
+      vim.cmd('normal! ^')
+      return
+    -- Check if it's a closing fence (just ```) - skip it
+    elseif line_text:match(cell_close_pattern) then
+      -- Skip closing fences, continue searching
+    -- Check for python cells (#%% or # %%)
+    elseif line_text:match(python_cell_pattern) then
+      vim.fn.cursor(line_num, 1)
+      vim.cmd('normal! ^')
+      return
+    end
+  end
+
+  vim.notify("No more cells below", vim.log.levels.INFO)
+end
+
+function M.jump_to_prev_cell()
+  local current_line = vim.fn.line('.')
+  local ft = vim.bo.filetype
+
+  local cell_open_pattern = "^```{.*}"  -- Opening fence with language spec (```{python})
+  local cell_close_pattern = "^```%s*$"  -- Closing fence (just ``` followed by optional whitespace)
+  local python_cell_pattern = "^%s*#%s*%%%%"  -- Python cell delimiter: #%% or # %% (with optional leading/between whitespace)
+
+  -- First, check if we're currently inside a code block
+  -- If so, find the opening fence and skip past it
+  local in_code_block = false
+  for line_num = current_line, 1, -1 do
+    local line_text = vim.fn.getline(line_num)
+    if line_text:match(cell_close_pattern) then
+      in_code_block = true
+    elseif line_text:match(cell_open_pattern) then
+      -- Found the opening fence, start searching from before it
+      current_line = line_num - 1
+      in_code_block = false
+      break
+    end
+  end
+
+  -- Now search for the previous cell
+  for line_num = current_line - 1, 1, -1 do
+    local line_text = vim.fn.getline(line_num)
+
+    -- Check if it's a closing fence (just ```) - skip it
+    if line_text:match(cell_close_pattern) then
+      -- Skip closing fences, continue searching
+    -- Check if it's an opening code fence (```{python}, ```{r}, etc.)
+    elseif line_text:match(cell_open_pattern) then
+      -- Jump to the line AFTER the opening fence (inside the code block)
+      vim.fn.cursor(line_num + 1, 1)
+      vim.cmd('normal! ^')
+      return
+    -- Check for python cells (#%% or # %%)
+    elseif line_text:match(python_cell_pattern) then
+      vim.fn.cursor(line_num, 1)
+      vim.cmd('normal! ^')
+      return
+    end
+  end
+
+  vim.notify("No more cells above", vim.log.levels.INFO)
+end
+
+-- ============================================================================
 -- Smart Navigation (filetype-aware)
 -- ============================================================================
 
--- Jump to next semantic element (comment, heading, or section based on filetype)
+-- Jump to next comment/heading (for Quarto/Markdown, jump to headings; otherwise comments)
 function M.jump_to_next_semantic()
   local ft = vim.bo.filetype
 
-  if ft == "tex" or ft == "latex" then
-    M.jump_to_next_section()
-  elseif ft == "markdown" or ft == "quarto" then
+  if ft == "quarto" or ft == "markdown" then
     M.jump_to_next_heading()
   else
     M.jump_to_next_comment()
@@ -193,12 +286,63 @@ end
 function M.jump_to_prev_semantic()
   local ft = vim.bo.filetype
 
-  if ft == "tex" or ft == "latex" then
-    M.jump_to_prev_section()
-  elseif ft == "markdown" or ft == "quarto" then
+  if ft == "quarto" or ft == "markdown" then
     M.jump_to_prev_heading()
   else
     M.jump_to_prev_comment()
+  end
+end
+
+-- Jump to next cell/heading (for Quarto/Markdown/Jupyter)
+function M.jump_to_next_structure()
+  local ft = vim.bo.filetype
+
+  if ft == "tex" or ft == "latex" then
+    M.jump_to_next_section()
+  elseif ft == "quarto" or ft == "markdown" then
+    M.jump_to_next_cell()
+  elseif ft == "python" then
+    -- Check if it's actually a Jupyter notebook (has #%% or # %% cells)
+    local has_cells = false
+    for i = 1, vim.fn.line('$') do
+      if vim.fn.getline(i):match("^%s*#%s*%%%%") then
+        has_cells = true
+        break
+      end
+    end
+    if has_cells then
+      M.jump_to_next_cell()
+    else
+      M.jump_to_next_comment()  -- Fallback to comments for regular Python
+    end
+  else
+    M.jump_to_next_comment()  -- Fallback to comments
+  end
+end
+
+function M.jump_to_prev_structure()
+  local ft = vim.bo.filetype
+
+  if ft == "tex" or ft == "latex" then
+    M.jump_to_prev_section()
+  elseif ft == "quarto" or ft == "markdown" then
+    M.jump_to_prev_cell()
+  elseif ft == "python" then
+    -- Check if it's actually a Jupyter notebook (has #%% or # %% cells)
+    local has_cells = false
+    for i = 1, vim.fn.line('$') do
+      if vim.fn.getline(i):match("^%s*#%s*%%%%") then
+        has_cells = true
+        break
+      end
+    end
+    if has_cells then
+      M.jump_to_prev_cell()
+    else
+      M.jump_to_prev_comment()  -- Fallback to comments for regular Python
+    end
+  else
+    M.jump_to_prev_comment()  -- Fallback to comments
   end
 end
 
@@ -207,11 +351,17 @@ end
 -- ============================================================================
 
 function M.setup()
-  -- Visual and normal mode: Shift+J/K to jump between semantic elements
+  -- Shift+J/K: Jump between comments (all filetypes)
   vim.keymap.set({'n', 'v'}, '<S-j>', M.jump_to_next_semantic,
-    { desc = "Jump to next comment/heading/section", silent = true })
+    { desc = "Jump to next comment", silent = true })
   vim.keymap.set({'n', 'v'}, '<S-k>', M.jump_to_prev_semantic,
-    { desc = "Jump to previous comment/heading/section", silent = true })
+    { desc = "Jump to previous comment", silent = true })
+
+  -- Shift+H/L: Jump between code cells/sections/headings (filetype-aware)
+  vim.keymap.set({'n', 'v'}, '<S-h>', M.jump_to_prev_structure,
+    { desc = "Jump to previous cell/section/heading", silent = true })
+  vim.keymap.set({'n', 'v'}, '<S-l>', M.jump_to_next_structure,
+    { desc = "Jump to next cell/section/heading", silent = true })
 
   -- Alternative: use ]c and [c for comment navigation
   vim.keymap.set({'n', 'v'}, ']c', M.jump_to_next_comment,
