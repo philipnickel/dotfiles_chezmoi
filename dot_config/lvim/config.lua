@@ -58,12 +58,9 @@ lvim.builtin.which_key.mappings["f"] = {
   c = { "<cmd>Telescope commands<cr>", "Commands" },
 }
 
--- Source configuration files
-require("plugins")
-require("keymaps")
-require("lsp")
-require("treesitter")
-require("filetypes")
-require("pdf_handler")
-require("luasnip-config")
-require("smart-navigation").setup()
+-- Enable LunarVim's built-in bufferline (will be styled by nord.nvim)
+lvim.builtin.bufferline.active = true
+
+-- Buffer navigation keybindings (ensure they're always available)
+vim.keymap.set('n', '$', '<cmd>bnext<cr>', { silent = true, desc = 'Next buffer' })
+vim.keymap.set('n', '<S-$>', '<cmd>bprevious<cr>', { silent = true, desc = 'Previous buffer' })

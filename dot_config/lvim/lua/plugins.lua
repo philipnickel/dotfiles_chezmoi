@@ -345,69 +345,67 @@ table.insert(lvim.plugins, {
   end,
 })
 
--- Sidekick.nvim - AI sidekick with Copilot LSP integration
+-- Avante.nvim - AI-powered code assistant (Cursor AI IDE alternative)
 table.insert(lvim.plugins, {
-  "folke/sidekick.nvim",
+  "yetone/avante.nvim",
+  event = "VeryLazy",
+  version = false,
+  build = vim.fn.has("win32") ~= 0
+      and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
+      or "make",
   opts = {
-    -- CLI configuration
-    cli = {
-      mux = {
-        backend = "tmux", -- or "zellij"
-        enabled = true,
+    -- Project-specific instructions file
+    instructions_file = "avante.md",
+    -- Provider configuration - switch between "claude" or "copilot"
+    provider = "copilot",
+    providers = {
+      copilot = {
+        endpoint = "https://api.githubcopilot.com",
+        model = "gpt-4o-2024-05-13",
+        timeout = 30000,
+        extra_request_body = {
+          temperature = 0.75,
+          max_tokens = 20480,
+        },
+      },
+      claude = {
+        endpoint = "https://api.anthropic.com",
+        model = "claude-sonnet-4-20250514",
+        timeout = 30000,
+        extra_request_body = {
+          temperature = 0.75,
+          max_tokens = 20480,
+        },
       },
     },
   },
-  keys = {
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "MunifTanjim/nui.nvim",
+    "nvim-tree/nvim-web-devicons",
+    "zbirenbaum/copilot.lua", -- Already configured above
     {
-      "<tab>",
-      function()
-        -- if there is a next edit, jump to it, otherwise apply it if any
-        if not require("sidekick").nes_jump_or_apply() then
-          return "<Tab>" -- fallback to normal tab
-        end
-      end,
-      expr = true,
-      desc = "Goto/Apply Next Edit Suggestion",
+      -- Support for image pasting
+      "HakonHarnes/img-clip.nvim",
+      event = "VeryLazy",
+      opts = {
+        default = {
+          embed_image_as_base64 = false,
+          prompt_for_file_name = false,
+          drag_and_drop = {
+            insert_mode = true,
+          },
+          use_absolute_path = true,
+        },
+      },
     },
     {
-      "<c-.>",
-      function()
-        require("sidekick.cli").focus()
-      end,
-      desc = "Sidekick Switch Focus",
-      mode = { "n", "v" },
-    },
-    {
-      "<leader>aa",
-      function()
-        require("sidekick.cli").toggle({ focus = true })
-      end,
-      desc = "Sidekick Toggle CLI",
-      mode = { "n", "v" },
-    },
-    {
-      "<leader>ac",
-      function()
-        require("sidekick.cli").toggle({ name = "claude", focus = true })
-      end,
-      desc = "Sidekick Claude Toggle",
-      mode = { "n", "v" },
-    },
-    {
-      "<leader>ag",
-      function()
-        require("sidekick.cli").toggle({ name = "grok", focus = true })
-      end,
-      desc = "Sidekick Grok Toggle",
-      mode = { "n", "v" },
-    },
-    {
-      "<leader>ap",
-      function()
-        require("sidekick.cli").select_prompt()
-      end,
-      desc = "Sidekick Ask Prompt",
-      mode = { "n", "v" },
+      -- Markdown rendering support
+      'MeanderingProgrammer/render-markdown.nvim',
+      opts = {
+        file_types = { "markdown", "Avante" },
+      },
+      ft = { "markdown", "Avante" },
     },
   },
 })
@@ -519,3 +517,137 @@ table.insert(lvim.plugins, {
     end
   end,
 })
+
+-- TabTree for jumping between significant code elements
+table.insert(lvim.plugins, {
+  "roobert/tabtree.nvim",
+  config = function()
+    require("tabtree").setup({
+      -- print the capture group name when executing next/previous
+      --debug = true,
+
+      -- disable key bindings
+      --key_bindings_disabled = true,
+
+      key_bindings = {
+        next = "<Tab>",
+        previous = "<S-Tab>",
+      },
+
+      -- use :InspectTree to discover the (capture group)
+      -- @capture_name can be anything
+      language_configs = {
+        python = {
+          target_query = [[
+            (string) @string_capture
+            (interpolation) @interpolation_capture
+            (parameters) @parameters_capture
+            (argument_list) @argument_list_capture
+          ]],
+          -- experimental feature, to move the cursor in certain situations like when handling python f-strings
+          offsets = {
+            string_start_capture = 1,
+          },
+        },
+      },
+
+      default_config = {
+        target_query = [[
+            (string) @string_capture
+            (interpolation) @interpolation_capture
+            (parameters) @parameters_capture
+            (argument_list) @argument_list_capture
+        ]],
+        offsets = {},
+      }
+    })
+  end,
+})
+
+-- Noice.nvim - Highly experimental plugin that completely replaces the UI for messages, cmdline and the popupmenu
+table.insert(lvim.plugins, {
+  "folke/noice.nvim",
+  event = "VeryLazy",
+  dependencies = {
+    "MunifTanjim/nui.nvim",
+    "rcarriga/nvim-notify",
+  },
+  opts = {
+    lsp = {
+      override = {
+        ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+        ["vim.lsp.util.stylize_markdown"] = true,
+        ["cmp.entry.get_documentation"] = true,
+      },
+    },
+    routes = {
+      {
+        filter = {
+          event = "msg_show",
+          any = {
+            { find = "%d+L, %d+B" },
+            { find = "; after #%d+" },
+            { find = "; before #%d+" },
+          },
+        },
+        view = "mini",
+      },
+    },
+    presets = {
+      bottom_search = true,
+      command_palette = true,
+      long_message_to_split = true,
+    },
+  },
+})
+
+-- Nord.nvim colorscheme with proper bufferline support
+table.insert(lvim.plugins, {
+  "shaunsingh/nord.nvim",
+  config = function()
+    -- Configure nord.nvim options
+    vim.g.nord_contrast = true
+    vim.g.nord_borders = false
+    vim.g.nord_disable_background = false
+    vim.g.nord_italic = true
+    vim.g.nord_uniform_diff_background = true
+    vim.g.nord_bold = true
+    
+    -- Load the colorscheme
+    require('nord').set()
+    
+    -- Configure bufferline with nord.nvim highlights
+    local highlights = require("nord").bufferline.highlights({
+      italic = true,
+      bold = true,
+    })
+    
+    require("bufferline").setup({
+      options = {
+        separator_style = "thin", -- Normal thin separators (no slant)
+        always_show_bufferline = true,
+        diagnostics = "nvim_lsp",
+        diagnostics_indicator = function(count, level, diagnostics_dict, context)
+          local icon = level:match("error") and "󰅚 " or "󰀪 "
+          return " " .. icon .. count
+        end,
+        offsets = {
+          {
+            filetype = "neo-tree",
+            text = "File Explorer",
+            text_align = "left",
+            separator = true,
+          },
+        },
+        hover = {
+          enabled = true,
+          delay = 200,
+          reveal = { "close" },
+        },
+      },
+      highlights = highlights,
+    })
+  end,
+})
+
+

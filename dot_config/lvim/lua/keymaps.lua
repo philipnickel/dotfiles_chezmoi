@@ -391,19 +391,21 @@ lvim.builtin.which_key.mappings["m"] = {
   p = { ":MoltenImagePopup<cr>", "Image Popup" },
 }
 
--- Sidekick AI Assistant
+-- Avante AI Assistant
 lvim.builtin.which_key.mappings["a"] = {
-  name = "AI Assistant",
-  a = { function() require("sidekick.cli").toggle({ focus = true }) end, "Toggle AI CLI" },
-  c = { function() require("sidekick.cli").toggle({ name = "claude", focus = true }) end, "Toggle Claude CLI" },
-  g = { function() require("sidekick.cli").toggle({ name = "grok", focus = true }) end, "Toggle Grok CLI" },
-  p = { function() require("sidekick.cli").select_prompt() end, "Select Prompt" },
-  f = { function() require("sidekick.cli").focus() end, "Focus AI CLI" },
-  u = { function() require("sidekick.nes").update() end, "Update Suggestions" },
-  j = { function() require("sidekick.nes").jump() end, "Jump to Edit" },
-  s = { function() require("sidekick.nes").apply() end, "Apply Suggestions" },
-  h = { function() require("sidekick.nes").have() end, "Check Suggestions" },
-  x = { function() require("sidekick").clear() end, "Clear Suggestions" },
+  name = "Avante AI",
+  a = { "<cmd>AvanteToggle<cr>", "Toggle Avante" },
+  r = { "<cmd>AvanteRefresh<cr>", "Refresh Avante" },
+  f = { "<cmd>AvanteFocus<cr>", "Focus Avante" },
+  e = { "<cmd>AvanteEdit<cr>", "Edit Selection" },
+  c = { "<cmd>AvanteChat<cr>", "Chat" },
+  n = { "<cmd>AvanteChatNew<cr>", "New Chat" },
+  h = { "<cmd>AvanteHistory<cr>", "Chat History" },
+  x = { "<cmd>AvanteClear<cr>", "Clear Chat" },
+  s = { "<cmd>AvanteStop<cr>", "Stop Request" },
+  p = { "<cmd>AvanteSwitchProvider<cr>", "Switch Provider" },
+  m = { "<cmd>AvanteModels<cr>", "Show Models" },
+  b = { "<cmd>AvanteShowRepoMap<cr>", "Show Repo Map" },
 }
 
 -- Register management with Peekup
@@ -414,6 +416,38 @@ lvim.builtin.which_key.mappings['"'] = {
   p = { "<Plug>PeekupPasteAfter", "Paste after from register" },
   P = { "<Plug>PeekupPasteBefore", "Paste before from register" },
   x = { '"x', "Clear all registers (default binding)" },
+}
+
+-- Git integration with lazygit
+lvim.builtin.which_key.mappings["g"] = {
+  name = "Git",
+  g = { function()
+    -- Use toggleterm to create a floating terminal with lazygit
+    local Terminal = require('toggleterm.terminal').Terminal
+    local lazygit_term = Terminal:new({
+      cmd = "lazygit",
+      dir = "git_dir", -- Use git directory
+      direction = "float",
+      float_opts = {
+        border = "double",
+        width = 120,
+        height = 40,
+      },
+      on_open = function(term)
+        vim.cmd("startinsert!")
+        vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<esc>", "<cmd>close<CR>", {noremap = true, silent = true})
+        vim.api.nvim_buf_set_keymap(term.bufnr, "t", "q", "<cmd>close<CR>", {noremap = true, silent = true})
+      end,
+      on_close = function(term)
+        vim.cmd("startinsert!")
+      end,
+    })
+    lazygit_term:toggle()
+  end, "Lazygit (Floating Terminal)" },
+  s = { "<cmd>Telescope git_status<cr>", "Git Status" },
+  c = { "<cmd>Telescope git_commits<cr>", "Git Commits" },
+  b = { "<cmd>Telescope git_branches<cr>", "Git Branches" },
+  f = { "<cmd>Telescope git_files<cr>", "Git Files" },
 }
 
 -- Helper function to open markdown files in floating window
@@ -564,3 +598,12 @@ lvim.builtin.which_key.mappings["s"] = {
   end, "Toggle VimTeX mappings" },
 }
 
+-- Buffer navigation keybindings
+vim.keymap.set('n', '$', '<cmd>bnext<cr>', { silent = true, desc = 'Next buffer' })
+vim.keymap.set('n', '<S-$>', '<cmd>bprevious<cr>', { silent = true, desc = 'Previous buffer' })
+
+-- Buffer management with which-key integration
+lvim.builtin.which_key.mappings["x"] = {
+  name = "Buffer",
+  x = { "<cmd>bdelete<cr>", "Close buffer" },
+}

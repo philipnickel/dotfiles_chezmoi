@@ -86,7 +86,7 @@ automatically-unhide-macos-hidden-apps = false
     cmd-alt-ctrl-4 = 'workspace 4'
     cmd-alt-ctrl-5 = 'workspace 5'
     cmd-alt-ctrl-6 = 'workspace 6'
-    cmd-alt-ctrl-n = 'workspace-back-and-forth'
+    cmd-alt-ctrl-m = 'workspace-back-and-forth'
 
 
     # Move active window then follow focus (mirrors f18 + shift + number)
@@ -99,7 +99,7 @@ automatically-unhide-macos-hidden-apps = false
 
     # Quick utility bindings
     cmd-alt-ctrl-y = 'reload-config'
-    cmd-alt-ctrl-m = 'mode service'
+    cmd-alt-ctrl-q = 'mode service'
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes

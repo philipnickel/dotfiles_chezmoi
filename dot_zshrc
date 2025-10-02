@@ -253,3 +253,16 @@ export BROWSER="osascript -e \"tell application \\\"Zen\\\" to make new document
 # Suppress Neovim deprecation warnings
 export NVIM_APPNAME="lvim"
 export VIMRUNTIME="/opt/homebrew/Cellar/neovim/0.11.3/share/nvim/runtime"
+
+# Lazygit alias and function
+alias lg="lazygit"
+
+# Function to change directory on lazygit exit
+lg() {
+    export LAZYGIT_NEW_DIR_FILE=~/.lazygit/newdir
+    lazygit "$@"
+    if [ -f $LAZYGIT_NEW_DIR_FILE ]; then
+        cd "$(cat $LAZYGIT_NEW_DIR_FILE)"
+        rm -f $LAZYGIT_NEW_DIR_FILE > /dev/null
+    fi
+}
